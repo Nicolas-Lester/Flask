@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, redirect, render_template, request, url_for
 from flask_migrate import Migrate
 from forms import PersonaForm
 from models import Persona
@@ -49,3 +49,32 @@ def ver_detalle(id):
 def agregar():
     persona = Persona()
     personaForm = PersonaForm(obj=persona)
+    if request.method == 'POST':
+        if personaForm.validate_on_submit():
+            personaForm.populate_obj(persona)
+            app.logger.debug(f'Persona a insertar: {persona}')
+            #insertamos el nuevo registro
+            db.session.add(persona)
+            db.session.commit()
+            return redirect(url_for('inicio'))
+    return render_template('agregar.html', forma = personaForm)
+
+@app.route('/editar/<int:id>', methods=['GET', 'POST'])
+def editar(id):
+    #Recuperamos el objeto persona a editar
+    persona = Persona.query.get_or_404(id)
+    personaForma = PersonaForm(obj=persona)
+    if request.method == 'POST':
+        if personaForma.validate_on_submit():
+            personaForma.populate_obj(persona)
+            app.logger.debug(f'Persona a actualizar: {persona}')
+            db.session.commit()
+            return redirect(url_for('inicio'))
+    return render_template('editar.html', forma = personaForma)
+
+
+@app.route('/eliminar/<int:id>')
+def eliminar(id):
+    persona = Persona.query.get_or_404(id)
+    app.logger.debug(f'Persona a eliminar: {persona}')
+    db.session.delete(persona)
