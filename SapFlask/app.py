@@ -78,3 +78,5 @@ def eliminar(id):
     persona = Persona.query.get_or_404(id)
     app.logger.debug(f'Persona a eliminar: {persona}')
     db.session.delete(persona)
+    db.session.commit()
+    return redirect(url_for('inicio'))
